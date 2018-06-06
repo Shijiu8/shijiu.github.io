@@ -6,21 +6,23 @@
 <script type="text/javascript" src="encrypt.js"></script>
 <script type="text/javascript" src="decrypt.js"></script> -->
 
-		<div class="title">Message:</div>
-    	<textarea name='message' id='msg_source' value="this is a example" class="text_source">This is a example.</textarea>
+		<div class="title">Message (in the foramt of DNA)</div>
+    	<textarea name='message' id='msg_source' value="this is a example" class="text_source"
+        style="width:250px; height:80px;">This is a example.</textarea>
     <br>
-		<div class="title">input</div>
-			<textarea name='input' id='pwd' value="" ></textarea>
-      <br>
+    <br>
+		<div class="title">Input you key</div>
+			<textarea name='input' id='pwd' value="" class="text_source" style="width:250px; height:60px;"  >No input to generate a random one!</textarea>
+    <br>
         <button  onclick="encrypt()" >Encrypt </button>
         <button  onclick="decrypt()" >Decrypt </button>
     <br>
-			<div class="title">Result:</div>
-			<textarea name='cipher' id='encrypt_result' value=""></textarea>
-
+    <br>
+			<div class="title">Result</div>
+			<textarea name='cipher' id='encrypt_result' value="" style="width:250px; height:80px;" readonly="OK"></textarea>
 <div id="footer">
 	<p class="wrapper">
-		copyright @ shijiu
+		copyright @ Honghuahu 2018
 	</p>
 </div>
 
@@ -29,15 +31,15 @@ function encrypt() {
   var input=document.getElementById("msg_source");
   var pwd=document.getElementById("pwd");
   var final=document.getElementById("encrypt_result");
-
-if (isnull(pwd.value))
+    final.value=" ";
+if ((pwd.value === "No input to generate a random one!") || isnull(pwd.value))
 {
-  pwd=gen_random_key();
-  alert("No key input and get a random key "+String(wd));
+  pwd.value=gen_random_key();
+  alert("No key input and get a random key :  "+String(pwd.value));
 }
-var str_bin = str2bin(input);
+var str_bin = str2bin(input.value);
 var dna_str = bin2dna(str_bin);
-var key_ = random_parameter(pwd, 1);
+var key_ = random_parameter(pwd.value, 1);
 var random_dna_str = gen_random_dna_str(key_, dna_str.length * 2);
 var and_dna = "";
 for (var i=0;i<dna_str.length;i++){
@@ -54,20 +56,20 @@ function decrypt() {
   var input=document.getElementById("msg_source");
   var pwd=document.getElementById("pwd");
   var final=document.getElementById("encrypt_result");
-
-if (isnull(pwd.value))
+    final.value=" ";
+if ((pwd.value === "No input to generate a random one!") || isnull(pwd.value))
 {
   alert("Please input the key!")
 }
 else
 {
   var s_complement = "";
-  var key_ = random_parameter(pwd, 1);
-  for (var i=0;i<input.length;i++)
+  var key_ = random_parameter(pwd.value, 1);
+  for (var i=0;i<input.value.length;i++)
   {
-    s_complement += dna_complement(s[i]);
+    s_complement += dna_complement(input.value[i]);
   }
-  var random_dna_str = gen_random_dna_str(key_, s_complement.length * 2)
+  var random_dna_str = gen_random_dna_str(key_, s_complement.length*2);
   var and_dna = ""
   for (var i=0;i<s_complement.length;i++)
   {
@@ -75,6 +77,7 @@ else
   }
   var bin_str = dna2bin(and_dna);
   var decrypt_res = bin2str(bin_str);
+    console.log(decrypt_res)
   final.value=decrypt_res;
 }
 };
@@ -98,11 +101,13 @@ function str2bin(str){
     {
       var temp=str[i];
       var bin=temp.charCodeAt().toString(2);
-      bin="0"+bin;
+        if (bin.length===6){
+            bin="00"+bin;
+        }
+        else{
+            bin="0"+bin;
+        }
       res+=bin;
-      if (i<str.length-1){
-        res+=" ";
-      }
     }
     return res;
   }
@@ -110,12 +115,10 @@ function str2bin(str){
 //bin to string
 function bin2str(bin){
   var res="";
-  var ls=bin.split(" ");
-  for (var i=0;i<ls.length;i++){
-    var temp=ls[i];
-    if (temp!=" "){
+    bin=String(bin);
+  for (var i=0;i<bin.length;i+=8){
+    var temp=bin.substring(i,i+8);
     res+=String.fromCharCode(parseInt(Number(temp),2));
-  }
   }
   return res;
 }
@@ -126,15 +129,9 @@ function bin2dna(bin) {
   var index=0;
   var dna_str="";
   while(index<bin.length){
-    if (bin[index]!=" "){
       dna_str+=dna_bin.get(String(bin.substring(index,index+2)));
-      index+=2;
+                          index+=2;
     }
-    else{
-      dna_str+=" ";
-      index+=1;
-    }
-  }
   return dna_str;
 }
 
@@ -144,13 +141,8 @@ function dna2bin(dna) {
   var index=0;
   var bin_str="";
   while(index<dna.length){
-    if (dna[index]!=" "){
       bin_str+=bin_dna.get(dna[index]);
-    }
-    else {
-      bin_str+=" "
-    }
-    index+=1;
+      index+=1;
   }
   return bin_str;
 }
@@ -165,27 +157,27 @@ function random_parameter(key,dim) {
     var bin=temp.charCodeAt().toString(2);
     bin="0"+bin;
     res+=bin;}
-    key=parseInt(Number(res),2);
-    var seed = Number(key);
+    key=Number(res);
+    var seed = key;
     seed = (seed * 9301 + 49297) % 233280;
     var x_0 = seed / 233280.0;
-    var seed = Number(3.1415926*key);
+    var seed = Math.abs(Number((10-key)*key));
     seed = (seed * 9301 + 49297) % 233280;
     var r = seed *4 / 233280.0;
-    return [r,x_0];   // Math.ceil实现取整功能，可以根据需要取消取整
+    return [r,x_0]; 
  }
 
 //generate random dna string
 function gen_random_dna_str(key,len) {
   var new_dna="";
   var r =key[0];
-  var x_i=key[1];
+  var x_i=key[1]*1000;
   for (var i=0;i<len;i++){
-    x_i = r * x_i * (1 - x_i);
+    x_i = r * x_i * (1000 - x_i)/1000;
     xi_str = String(x_i);
-    if (xi_str.length>12)
+    if (xi_str.length>6)
     {
-      var temp=xi_str[10];
+      var temp=xi_str[4];
         if (temp>"5"){
           new_dna+="1";
       }
@@ -243,8 +235,16 @@ function dna_complement(s) {
 
 //no key and gengrate Key
 function gen_random_key() {
-  var rnd=Math.random()*1000000;
-  return Math.ceil(rnd);
+    var alpha="qwertyuiopasdfghjklzxcvbnm0123456789";
+    var res="";
+    while(res.length<7){
+        var rnd=String(Math.ceil(Math.random()*10000));
+        var temp=Number(rnd.substring(2,4));
+        if ((0<=temp) && (temp<36)){
+            res+=alpha[temp];
+        }
+    }
+  return res;
 }
 </script>
 </body>
